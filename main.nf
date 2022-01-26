@@ -34,6 +34,8 @@ Channel
 
 process align {
     publishDir "${params.out}/aligned_reads", mode:'copy'
+    
+    memory "15G"
 	
     input:
     set pair_id, file(reads) from read_pairs_ch

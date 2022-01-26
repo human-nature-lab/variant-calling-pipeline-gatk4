@@ -10,4 +10,10 @@ params.pm = "nextseq"
 // By default this gets set to params.outdir + '/nextflow_work_dir'
 workDir = params.outdir + '/nextflow_work_dir'
 
-process.executor = 'slurm'
+process {
+  executor = 'slurm'
+  withName:align {
+    cpus = 32
+    memory = 15.GB
+  }
+}
