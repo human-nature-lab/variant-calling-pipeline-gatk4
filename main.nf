@@ -35,8 +35,6 @@ Channel
 process align {
     publishDir "${params.out}/aligned_reads", mode:'copy'
     
-    memory "15G"
-	
     input:
     set pair_id, file(reads) from read_pairs_ch
      
@@ -85,6 +83,8 @@ process markDuplicatesSpark {
     mkdir -p ${params.tmpdir}/${workflow.runName}/${pair_id}
     gatk --java-options "-Djava.io.tmpdir=${params.tmpdir}/${workflow.runName}/${pair_id}" \
 	 MarkDuplicatesSpark \
+	--num-executors 1 \
+	--executor-cores ${task.cpus} \
 	-I $aligned_reads \
 	-M ${pair_id}_dedup_metrics.txt \
 	-O ${pair_id}_sorted_dedup.bam 
@@ -352,7 +352,7 @@ process snpEff {
     script:
     """
     java -jar \$SNPEFF_JAR -v \
-	-dataDir $params.snpeff_data \
+	-dataDir $params.snpeff_data -t \
 	$params.snpeff_db \
 	$filtered_snps > ${pair_id}_filtered_snps.ann.vcf
     """
