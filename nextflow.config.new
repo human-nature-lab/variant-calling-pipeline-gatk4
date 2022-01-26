@@ -14,6 +14,10 @@ process {
   executor = 'slurm'
   withName:align {
     cpus = 32
+    queue = 'scavenge'
     memory = 15.GB
+  }
+  withName:markDuplicatesSpark {
+    cpus = 20
   }
 }
