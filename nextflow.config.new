@@ -1,8 +1,8 @@
 // Required Parameters
 params.reads = "/gpfs/ycga/scratch60/christakis/ln255/hmb_shared/pilot_samples/*/Unaligned/*_R{1,2}_*.fastq.gz"
 params.ref = "/gpfs/ycga/project/christakis/fb343/databases/variant_calling_pipeline/genome.fa"
-params.outdir = "/gpfs/gibbs/pi/christakis_loan/gatk"
-params.snpeff_db = "hg38"
+params.outdir = "/gpfs/ycga/scratch60/christakis/fb343/gatk"
+params.snpeff_db = "hg19"
 params.pl = "illumina"
 params.pm = "nextseq"
 
@@ -18,6 +18,7 @@ process {
     memory = 15.GB
   }
   withName:markDuplicatesSpark {
-    cpus = 20
+    cpus = 32
+    queue = 'scavenge'
   }
 }

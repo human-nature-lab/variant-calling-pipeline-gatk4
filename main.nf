@@ -27,7 +27,8 @@ ref = file(params.ref)
  */
 num_samples = 0
 Channel
-    .fromFilePairs( params.reads )
+    .fromFilePairs( params.reads, followLinks: true)
+    .take(2)
     .ifEmpty { error "Cannot find any reads matching: ${params.reads}"  }
     .tap { read_pairs_ch }
     .subscribe({ num_samples += 1 })
@@ -39,7 +40,7 @@ process align {
     set pair_id, file(reads) from read_pairs_ch
      
     output:
-    set val(pair_id), file("${pair_id}_aligned_reads.sam") \
+    set val(pair_id), file("${pair_id}_aligned_reads.bam") \
 	into aligned_reads_ch
 	
     script:
@@ -54,8 +55,7 @@ process align {
 	-R \"${readGroup}\" \
 	$ref \
 	${reads[0]} \
-	${reads[1]} \
-	> ${pair_id}_aligned_reads.sam
+	${reads[1]} | samtools view -Sb -> ${pair_id}_aligned_reads.bam
     """
 }
 
@@ -83,11 +83,9 @@ process markDuplicatesSpark {
     mkdir -p ${params.tmpdir}/${workflow.runName}/${pair_id}
     gatk --java-options "-Djava.io.tmpdir=${params.tmpdir}/${workflow.runName}/${pair_id}" \
 	 MarkDuplicatesSpark \
-	--num-executors 1 \
-	--executor-cores ${task.cpus} \
 	-I $aligned_reads \
 	-M ${pair_id}_dedup_metrics.txt \
-	-O ${pair_id}_sorted_dedup.bam 
+	-O ${pair_id}_sorted_dedup.bam --conf 'spark.executor.cores=${task.cpus}'
     rm -r ${params.tmpdir}/${workflow.runName}/${pair_id}
     """ 
 }
