@@ -34,7 +34,7 @@ Channel
     .subscribe({ num_samples += 1 })
 
 process align {
-    publishDir "${params.out}/aligned_reads", mode:'copy'
+    publishDir "${params.out}/aligned_reads", mode:'symlink'
     
     input:
     set pair_id, file(reads) from read_pairs_ch
@@ -83,10 +83,11 @@ process markDuplicatesSpark {
     mkdir -p ${params.tmpdir}/${workflow.runName}/${pair_id}
     gatk --java-options "-Djava.io.tmpdir=${params.tmpdir}/${workflow.runName}/${pair_id}" \
 	 MarkDuplicatesSpark \
-	-I $aligned_reads \
+	-I ${aligned_reads} \
 	-M ${pair_id}_dedup_metrics.txt \
 	-O ${pair_id}_sorted_dedup.bam --conf 'spark.executor.cores=${task.cpus}'
     rm -r ${params.tmpdir}/${workflow.runName}/${pair_id}
+    rm -r ${aligned_reads}
     """ 
 }
 
@@ -104,7 +105,7 @@ process getMetrics {
 	file("${pair_id}_alignment_metrics.txt"), \
 	file("${pair_id}_insert_metrics.txt"), \
 	file("${pair_id}_insert_size_histogram.pdf"), \
-	file("${pair_id}_depth_out.txt") \
+	file("${pair_id}_depth_out.txt.gz") \
 	into metrics_qc_ch
 
     script:
@@ -119,7 +120,7 @@ process getMetrics {
         INPUT=${sorted_dedup_reads} \
 	OUTPUT=${pair_id}_insert_metrics.txt \
         HISTOGRAM_FILE=${pair_id}_insert_size_histogram.pdf 
-    samtools depth -a ${sorted_dedup_reads} > ${pair_id}_depth_out.txt
+    samtools depth -a ${sorted_dedup_reads} | gzip > ${pair_id}_depth_out.txt.gz
     """
 }
 
@@ -363,7 +364,7 @@ process qc {
 	file("${pair_id}_alignment_metrics.txt"), \
         file("${pair_id}_insert_metrics.txt"), \
         file("${pair_id}_insert_size_histogram.pdf"), \
-        file("${pair_id}_depth_out.txt"), \
+        file("${pair_id}_depth_out.txt.gz"), \
 	val(round_1), \
         file("${pair_id}_filtered_snps_1.vcf"), \
         file("${pair_id}_filtered_snps_1.vcf.idx"), \
