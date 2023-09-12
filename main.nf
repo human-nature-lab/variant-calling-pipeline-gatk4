@@ -353,7 +353,7 @@ process snpEff {
     java -jar \$SNPEFF_JAR -v \
 	-dataDir $params.snpeff_data -t \
 	$params.snpeff_db \
-	$filtered_snps > ${pair_id}_filtered_snps.ann.vcf
+	$filtered_snps | gzip > ${pair_id}_filtered_snps.ann.vcf.gz
     """
 }
 
