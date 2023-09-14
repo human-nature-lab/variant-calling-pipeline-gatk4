@@ -28,7 +28,6 @@ ref = file(params.ref)
 num_samples = 0
 Channel
     .fromFilePairs( params.reads, followLinks: true)
-    .take(2)
     .ifEmpty { error "Cannot find any reads matching: ${params.reads}"  }
     .tap { read_pairs_ch }
     .subscribe({ num_samples += 1 })
@@ -378,7 +377,7 @@ process qc {
 
     output:
     file ("${pair_id}_report.csv") into qc_output
-
+cd .
     script:
     """
     parse_metrics.sh ${pair_id} > ${pair_id}_report.csv
