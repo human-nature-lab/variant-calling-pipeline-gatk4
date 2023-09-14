@@ -377,7 +377,7 @@ process qc {
 
     output:
     file ("${pair_id}_report.csv") into qc_output
-cd .
+
     script:
     """
     parse_metrics.sh ${pair_id} > ${pair_id}_report.csv
